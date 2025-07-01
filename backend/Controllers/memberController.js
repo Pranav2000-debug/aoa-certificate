@@ -1,4 +1,4 @@
-const Member = require("../models/member");
+const Member = require("../Models/member");
 
 exports.addMember = async (req, res) => {
   try {
