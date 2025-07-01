@@ -28,6 +28,7 @@ app.use(express.json());
 app.use(cors());
 app.use(memberRoutes);
 
+
 app.listen(port, () => {
   console.log(`server is running...
 PORT:http://localhost:${port}`);
