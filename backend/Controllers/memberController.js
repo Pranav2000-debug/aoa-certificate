@@ -1,7 +1,4 @@
 const Member = require("../Models/member");
-const { sendOtp } = require("../otpService"); // Your Twilio function
-
-const otpStore = {};
 
 function maskString(str, visibleStart = 3, visibleEnd = 2) {
   if (!str) return "N/A";
