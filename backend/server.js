@@ -4,7 +4,6 @@ const { default: mongoose } = require("mongoose");
 const cors = require("cors");
 const memberRoutes = require("./Routes/memberRoutes");
 
-
 const app = express();
 
 dotenv.config();

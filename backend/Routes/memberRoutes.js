@@ -1,5 +1,5 @@
 const express = require("express");
-const { addMember, getMemberByFlatNumber } = require("../Controllers/memberController");
+const { addMember, getMemberByFlatNumber} = require("../Controllers/memberController");
 // const { verifyApiKey } = require("../middleware/auth");
 const memberRoutes = express.Router();
 

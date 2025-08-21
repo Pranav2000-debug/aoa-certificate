@@ -1,4 +1,7 @@
 const Member = require("../Models/member");
+const { sendOtp } = require("../otpService"); // Your Twilio function
+
+const otpStore = {};
 
 function maskString(str, visibleStart = 3, visibleEnd = 2) {
   if (!str) return "N/A";
@@ -55,5 +58,26 @@ exports.getMemberByFlatNumber = async (req, res) => {
   } catch (err) {
     console.log("error getting member", err);
     res.status(500).json({ message: "server error" });
+  }
+};
+
+exports.verifyPhoneNumber = async (req, res) => {
+  try {
+    const { phoneNumber, flatNumber } = req.body;
+
+    if (!phoneNumber || !flatNumber) {
+      return res.status(400).json({ message: "Phone number and flat number are required." });
+    }
+
+    const member = await Member.findOne({ flatNumber, phoneNumber });
+
+    if (!member) {
+      return res.status(404).json({ exists: false, message: "Phone number does not match the flat number." });
+    }
+
+    res.json({ exists: true, message: "Phone number verified.", member });
+  } catch (error) {
+    console.error("Error verifying phone number:", error);
+    res.status(500).json({ message: "Server error." });
   }
 };
