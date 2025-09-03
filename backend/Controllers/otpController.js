@@ -21,7 +21,7 @@ exports.sendOtpWhatsapp = async (req, res) => {
     // 4. Send via WhatsApp
     await client.messages.create({
       from: process.env.TWILIO_WHATSAPP_NUMBER, // e.g. 'whatsapp:+14155238886'
-      to: `whatsapp:${member.phoneNumber}`, // user phone
+      to: `whatsapp:+91${member.phoneNumber}`, // user phone
       body: `Your OTP is ${otp}`,
     });
 
