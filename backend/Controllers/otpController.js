@@ -27,7 +27,7 @@ exports.sendOtpWhatsapp = async (req, res) => {
 
     res.json({ success: true, message: "OTP sent via WhatsApp" });
   } catch (err) {
-    console.error("Send OTP Error:", err);
+    console.log("Twilio response:", msg.sid); // LOG THE ERROR TO CHECK AXIOS 500 error
     res.status(500).json({ message: "Server error" });
   }
 };
