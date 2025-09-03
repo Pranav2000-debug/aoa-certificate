@@ -26,7 +26,7 @@ connectDB();
 app.use(express.json());
 app.use(cors());
 app.use(memberRoutes);
-app.use("api/otp/",otpRoutes);
+app.use(otpRoutes);
 
 
 app.listen(port, () => {
