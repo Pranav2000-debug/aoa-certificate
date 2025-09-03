@@ -24,10 +24,10 @@ exports.sendOtpWhatsapp = async (req, res) => {
       to: `whatsapp:+91${member.phoneNumber}`, // user phone
       body: `Your OTP is ${otp}`,
     });
-
+    console.log("Twilio response:", msg.sid); // log twilio sid
     res.json({ success: true, message: "OTP sent via WhatsApp" });
   } catch (err) {
-    console.log("Twilio response:", msg.sid); // LOG THE ERROR TO CHECK AXIOS 500 error
+    console.error("Twilio response:", err); // LOG THE ERROR TO CHECK AXIOS 500 error
     res.status(500).json({ message: "Server error" });
   }
 };
