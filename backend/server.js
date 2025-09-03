@@ -3,7 +3,7 @@ const dotenv = require("dotenv");
 const { default: mongoose } = require("mongoose");
 const cors = require("cors");
 const memberRoutes = require("./Routes/memberRoutes");
-const {otpRoutes} = require("./Routes/otpRoutes");
+const otpRoutes = require("./Routes/otpRoutes");
 const app = express();
 
 dotenv.config();
