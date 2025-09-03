@@ -12,22 +12,25 @@ exports.sendOtpWhatsapp = async (req, res) => {
     if (!member) {
       return res.status(404).json({ message: "No member found with this flat number" });
     }
+
+    // 2. Generate OTP
     const otp = Math.floor(100000 + Math.random() * 900000);
 
-    // 3. Save OTP temporarily in DB (extend Member schema with `otp` field)
+    // 3. Save OTP temporarily in DB
     member.otp = otp;
     await member.save();
 
-    // 4. Send via WhatsApp
-    await client.messages.create({
-      from: process.env.TWILIO_WSAPHONE_NUMBER, // e.g. 'whatsapp:+14155238886'
-      to: `whatsapp:+91${member.phoneNumber}`, // user phone
+    // 4. Send OTP via WhatsApp (sandbox)
+    const message = await client.messages.create({
+      from: "whatsapp:+14155238886", // Twilio Sandbox WA number (hardcoded for now)
+      to: `whatsapp:+91${member.phoneNumber}`, // member phone (must be joined to sandbox)
       body: `Your OTP is ${otp}`,
     });
-    console.log("Twilio response:", msg.sid); // log twilio sid
+
+    console.log("Twilio SID:", message.sid);
     res.json({ success: true, message: "OTP sent via WhatsApp" });
   } catch (err) {
-    console.error("Twilio response:", err); // LOG THE ERROR TO CHECK AXIOS 500 error
+    console.error("Twilio error:", err);
     res.status(500).json({ message: "Server error" });
   }
 };
@@ -37,7 +40,7 @@ exports.verifyOtp = async (req, res) => {
     const { flatNumber, otp } = req.body;
 
     const member = await Member.findOne({ flatNumber });
-    if (!member || member.otp !== otp) {
+    if (!member || String(member.otp) !== String(otp)) {
       return res.status(400).json({ success: false, message: "Invalid OTP" });
     }
 
