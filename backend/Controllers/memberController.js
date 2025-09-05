@@ -1,9 +1,15 @@
 const Member = require("../Models/member");
 
+// Util functions
 function maskString(str, visibleStart = 3, visibleEnd = 2) {
   if (!str) return "N/A";
   if (str.length <= visibleStart + visibleEnd) return str; // too short
   return str.substring(0, visibleStart) + "*".repeat(str.length - (visibleStart + visibleEnd)) + str.substring(str.length - visibleEnd);
+}
+function maskName(str) {
+  if (!str) return "N/A";
+  if (str.length <= 2) return str; // too short
+  return str[0] + "*".repeat(str.length - 2) + str[str.length - 1];
 }
 
 exports.addMember = async (req, res) => {
@@ -46,10 +52,10 @@ exports.getMemberByFlatNumber = async (req, res) => {
 
     const response = {
       flatNumber: member.flatNumber,
-      ownerNameMasked: maskString(member.ownerName, 3, 2),
-      coOwnerNameMasked: member.coOwnerName ? maskString(member.coOwnerName, 3, 2) : "N/A",
+      ownerNameMasked: maskName(member.ownerName),
+      coOwnerNameMasked: member.coOwnerName ? maskName(member.coOwnerName) : "N/A",
       phoneNumberMasked: maskString(member.phoneNumber, 2, 2), // show first 2 and last 2 digits
-      emailMasked: member.email ? maskString(member.email.split("@")[0], 3, 0) + "@" + member.email.split("@")[1] : "N/A",
+      emailMasked: member.email ? maskName(member.email.split("@")[0], 3, 0) + "@" + member.email.split("@")[1] : "N/A",
     };
     return res.json(response);
   } catch (err) {
@@ -75,6 +81,34 @@ exports.verifyPhoneNumber = async (req, res) => {
     res.json({ exists: true, message: "Phone number verified.", member });
   } catch (error) {
     console.error("Error verifying phone number:", error);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
+// controllers/memberController.js
+exports.updateMemberDetails = async (req, res) => {
+  try {
+    const { flatNumber, ownerName, coOwnerName, phoneNumber, email } = req.body;
+
+    if (!flatNumber) {
+      return res.status(400).json({ message: "Flat number is required" });
+    }
+
+    const member = await Member.findOne({ flatNumber });
+    if (!member) {
+      return res.status(404).json({ message: "Member not found" });
+    }
+
+    // Update only provided fields
+    if (ownerName) member.ownerName = ownerName;
+    if (coOwnerName) member.coOwnerName = coOwnerName;
+    if (phoneNumber) member.phoneNumber = phoneNumber;
+    if (email) member.email = email;
+
+    await member.save();
+    res.json({ message: "Member details updated successfully", member });
+  } catch (err) {
+    console.error("Update Member Error:", err);
     res.status(500).json({ message: "Server error." });
   }
 };
