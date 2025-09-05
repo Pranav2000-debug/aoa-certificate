@@ -9,6 +9,6 @@ memberRoutes.post("/add-member", addMember);
 // working from node controllers
 memberRoutes.post("/find-member", getMemberByFlatNumber);
 memberRoutes.post("/verify-phone", verifyPhoneNumber);
-memberRoutes.put("/updat-member", updateMemberDetails);
+memberRoutes.put("/update-member", updateMemberDetails);
 
 module.exports = memberRoutes;
