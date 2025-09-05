@@ -18,11 +18,11 @@ exports.sendOtpSms = async (req, res) => {
     member.otp = otp;
     await member.save();
 
-    if (process.env.MOCK_SMS === "true") {
-      console.log(`MOCK SMS: OTP ${otp} sent to ${member.phoneNumber}`);
-      return res.json({ success: true, message: "OTP sent (mocked)", otp });
-      // include otp in response ONLY for testing
-    }
+    // if (process.env.MOCK_SMS === "true") {
+    //   console.log(`MOCK SMS: OTP ${otp} sent to ${member.phoneNumber}`);
+    //   return res.json({ success: true, message: "OTP sent (mocked)", otp });
+    //   // include otp in response ONLY for testing
+    // }
 
     // 4. Call Fast2SMS API
     const response = await axios.post(
