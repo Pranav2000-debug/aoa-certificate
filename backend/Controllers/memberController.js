@@ -78,7 +78,14 @@ exports.verifyPhoneNumber = async (req, res) => {
       return res.status(404).json({ exists: false, message: "Phone number does not match the flat number." });
     }
 
-    res.json({ exists: true, message: "Phone number verified.", member });
+    const unmaskedMemberData = {
+      flatNumber: member.flatNumber,
+      unmaskedOwnerName: member.ownerName,
+      unmaskedcoOwnerName: member.coOwnerName,
+      phoneNumberMasked: maskString(member.phoneNumber, 2, 2), // show first 2 and last 2 digits
+      unmaskedemailMasked: member.email
+    }
+    res.json({ exists: true, message: "Phone number verified.", unmaskedMemberData });
   } catch (error) {
     console.error("Error verifying phone number:", error);
     res.status(500).json({ message: "Server error." });
