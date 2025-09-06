@@ -16,6 +16,9 @@ export default function CertificatePage() {
   const [otpError, setOtpError] = useState("");
   const [isOtpVerified, setIsOtpVerified] = useState(false);
 
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [verifyOtpLoading, setVerifyOtpLoading] = useState(false);
+
   // --- Update Form States ---
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [updatedOwner, setUpdatedOwner] = useState("");
@@ -29,7 +32,7 @@ export default function CertificatePage() {
 
   useEffect(() => {
     setAnimateForm(true);
-  },[])
+  }, []);
 
   // --- Flat Number Handlers ---
   const handleFlatNumberChange = (e) => {
@@ -53,6 +56,8 @@ export default function CertificatePage() {
     setErrorData(null);
     setMemberData(null);
     setIsLoading(true);
+    setIsPhoneVerified(false);
+    setPhoneInput("");
 
     const formattedFlatNumber = formatFlatNumber(flatNumber);
     setFlatNumber(formattedFlatNumber);
@@ -60,6 +65,7 @@ export default function CertificatePage() {
     try {
       const res = await axios.post("https://aoa-certificate.onrender.com/find-member", { flatNumber: formattedFlatNumber });
       setMemberData(res.data);
+      console.log(res.data);
     } catch (err) {
       setErrorData(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -85,7 +91,8 @@ export default function CertificatePage() {
         flatNumber,
         phoneNumber: phoneInput,
       });
-
+      console.log(response.data.unmaskedMemberData);
+      setMemberData(response.data.unmaskedMemberData);
       if (response.data.exists) {
         setIsPhoneVerified(true);
       } else {
@@ -101,6 +108,7 @@ export default function CertificatePage() {
 
   // --- Send OTP ---
   const handleSendOtp = async () => {
+    setOtpLoading(true);
     try {
       const res = await axios.post("https://aoa-certificate.onrender.com/send-otp", {
         flatNumber,
@@ -109,15 +117,19 @@ export default function CertificatePage() {
       setOtpSent(true);
     } catch (err) {
       console.error(err);
+    } finally {
+      setOtpLoading(false);
     }
   };
 
   // --- Verify OTP ---
   const handleVerifyOtp = async () => {
     setOtpError("");
+    setVerifyOtpLoading(true);
 
     if (!otpInput) {
       setOtpError("Please enter the OTP");
+      setVerifyOtpLoading(false);
       return;
     }
 
@@ -134,7 +146,9 @@ export default function CertificatePage() {
       }
     } catch (err) {
       console.log(err);
-      setOtpError("Server error while verifying OTP");
+      setOtpError("Invalid OTP");
+    } finally {
+      setVerifyOtpLoading(false);
     }
   };
 
@@ -155,7 +169,10 @@ export default function CertificatePage() {
 
       {/* Main Section */}
       <main className="flex-1 flex flex-col items-center justify-center px-4">
-        <div className={`bg-white shadow-lg rounded-2xl p-8 w-full max-w-md transform transition-all duration-700 ease-out ${animateForm ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-100px]"}`}>
+        <div
+          className={`bg-white shadow-lg rounded-2xl p-8 w-full max-w-md transform transition-all duration-700 ease-out ${
+            animateForm ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-100px]"
+          }`}>
           <h2 className="text-2xl font-semibold text-center mb-6 text-gray-800">Download Your Membership Certificate</h2>
 
           {/* Flat Number Form */}
@@ -171,7 +188,6 @@ export default function CertificatePage() {
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:outline-none"
                 value={flatNumber}
                 onChange={handleFlatNumberChange}
-                // pattern="[A-Z]-\d{4}"
               />
             </div>
 
@@ -233,7 +249,7 @@ export default function CertificatePage() {
                       alert("Details updated successfully!");
                       setShowUpdateForm(false);
                       handleSubmit(new Event("submit")); // refresh memberData
-                      // eslint-disable-next-line no-unused-vars
+                    // eslint-disable-next-line no-unused-vars
                     } catch (err) {
                       alert("Error updating details");
                     }
@@ -276,7 +292,7 @@ export default function CertificatePage() {
 
               {/* Phone Verification */}
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Enter your full phone number to proceed</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Use the phone number shown above (first number on record) to verify your account or you can update (Update Details) your phone number to receive an OTP. </label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -299,8 +315,17 @@ export default function CertificatePage() {
                 <>
                   <p className="text-green-600 mt-2">Phone number matches the apartment owner's phone number.</p>
                   {!otpSent ? (
-                    <button onClick={handleSendOtp} className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg">
-                      Send OTP
+                    <button
+                      onClick={handleSendOtp}
+                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center"
+                      disabled={otpLoading}>
+                      {otpLoading ? (
+                        <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                      ) : null}
+                      {otpLoading ? "Sending OTP..." : "Send OTP"}
                     </button>
                   ) : (
                     <div className="mt-4">
@@ -315,8 +340,17 @@ export default function CertificatePage() {
                       {otpError && <p className="text-red-600 mt-2">{otpError}</p>}
 
                       {!isOtpVerified ? (
-                        <button onClick={handleVerifyOtp} className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg">
-                          Verify OTP
+                        <button
+                          onClick={handleVerifyOtp}
+                          className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg flex items-center justify-center"
+                          disabled={verifyOtpLoading}>
+                          {verifyOtpLoading ? (
+                            <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                            </svg>
+                          ) : null}
+                          {verifyOtpLoading ? "Verifying..." : "Verify OTP"}
                         </button>
                       ) : (
                         <p className="text-green-600 mt-2">✅ OTP verified successfully!</p>
