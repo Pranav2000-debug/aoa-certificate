@@ -80,11 +80,11 @@ exports.verifyPhoneNumber = async (req, res) => {
 
     const unmaskedMemberData = {
       flatNumber: member.flatNumber,
-      unmaskedOwnerName: member.ownerName,
-      unmaskedcoOwnerName: member.coOwnerName,
-      phoneNumberMasked: maskString(member.phoneNumber, 2, 2), // show first 2 and last 2 digits
-      unmaskedemailMasked: member.email
-    }
+      ownerNameMasked: member.ownerName, // use same key as React expects
+      coOwnerNameMasked: member.coOwnerName, // use same key
+      phoneNumberMasked: maskString(member.phoneNumber, 2, 2), // keep masked phone
+      emailMasked: member.email, // full email
+    };
     res.json({ exists: true, message: "Phone number verified.", unmaskedMemberData });
   } catch (error) {
     console.error("Error verifying phone number:", error);
