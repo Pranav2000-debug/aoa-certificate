@@ -1,7 +1,8 @@
-const twilio = require("twilio");
+// const twilio = require("twilio");
 const Member = require("../Models/member");
+const axios = require("axios");
 
-const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+// const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 exports.sendOtpSms = async (req, res) => {
   try {
@@ -20,17 +21,33 @@ exports.sendOtpSms = async (req, res) => {
     member.otp = otp;
     await member.save();
 
-    // 4. Send OTP via SMS
-    const message = await client.messages.create({
-      from: "+19016609825", // Your US Twilio number
-      to: `+91${member.phoneNumber}`,        // Member's phone number with country code
-      body: `Your OTP is ${otp}`,
-    });
+    const url = `https://cpaas.messagecentral.com/verification/v3/send?countryCode=91&customerId=${process.env.MESSAGECENTRAL_CUSTOMER_ID}&flowType=SMS&mobileNumber=91${member.phoneNumber}`;
 
-    console.log("Twilio SID:", message.sid);
-    res.json({ success: true, message: "OTP sent via SMS" });
+    // twilio method
+    // 4. Send OTP via SMS
+    // const message = await client.messages.create({
+    //   from: "+19016609825", // Your US Twilio number
+    //   to: `+91${member.phoneNumber}`,        // Member's phone number with country code
+    //   body: `Your OTP is ${otp}`,
+    // });
+
+    // Message central method
+    const response = await axios.post(
+      url,
+      {},
+      {
+        headers: {
+          authToken: process.env.MESSAGECENTRAL_AUTH_TOKEN,
+        },
+      }
+    );
+
+    // console.log("Twilio SID:", message.sid);
+
+    console.log(`Message Central response ${response.data}`);
+    res.json({ success: true, message: "OTP sent via SMS", providerResponse: response.data });
   } catch (err) {
-    console.error("Twilio SMS error:", err);
+    console.error("Message Central server error SMS error:", err.response?.data || err.message );
     res.status(500).json({ message: "Server error" });
   }
 };
