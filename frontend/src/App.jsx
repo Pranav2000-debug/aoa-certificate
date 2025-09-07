@@ -12,7 +12,7 @@ export default function CertificatePage() {
   const [isPhoneVerified, setIsPhoneVerified] = useState(false);
 
   const [otpSent, setOtpSent] = useState(false);
-  const [otpInput, setOtpInput] = useState("");
+  const [otpDigits, setOtpDigits] = useState(["", "", "", ""]); // 4-digit OTP array
   const [otpError, setOtpError] = useState("");
   const [isOtpVerified, setIsOtpVerified] = useState(false);
 
@@ -58,6 +58,9 @@ export default function CertificatePage() {
     setIsLoading(true);
     setIsPhoneVerified(false);
     setPhoneInput("");
+    setOtpDigits(["", "", "", ""]);
+    setOtpSent(false);
+    setIsOtpVerified(false);
 
     const formattedFlatNumber = formatFlatNumber(flatNumber);
     setFlatNumber(formattedFlatNumber);
@@ -122,13 +125,37 @@ export default function CertificatePage() {
     }
   };
 
+  // --- Handle OTP input change ---
+  const handleOtpChange = (e, index) => {
+    const val = e.target.value.replace(/\D/g, ""); // Only digits
+    if (!val) return;
+
+    setOtpDigits(prev => prev.map((d, i) => (i === index ? val[0] : d)));
+
+    // Auto-focus next input
+    if (index < 3) {
+      document.getElementById(`otp-${index + 1}`).focus();
+    }
+  };
+
+  // --- Handle OTP backspace ---
+  const handleOtpBackspace = (e, index) => {
+    if (e.key === "Backspace") {
+      setOtpDigits(prev => prev.map((d, i) => (i === index ? "" : d)));
+      if (index > 0) {
+        document.getElementById(`otp-${index - 1}`).focus();
+      }
+    }
+  };
+
   // --- Verify OTP ---
   const handleVerifyOtp = async () => {
     setOtpError("");
     setVerifyOtpLoading(true);
 
-    if (!otpInput) {
-      setOtpError("Please enter the OTP");
+    const otpValue = otpDigits.join("");
+    if (otpValue.length !== 4) {
+      setOtpError("Please enter the 4-digit OTP");
       setVerifyOtpLoading(false);
       return;
     }
@@ -136,7 +163,7 @@ export default function CertificatePage() {
     try {
       const res = await axios.post("https://aoa-certificate.onrender.com/verify-otp", {
         flatNumber,
-        otp: otpInput,
+        otp: otpValue,
       });
 
       if (res.data.success) {
@@ -212,21 +239,11 @@ export default function CertificatePage() {
           {memberData && (
             <div className="mt-6 p-4 border rounded-lg bg-gray-100">
               <h2 className="text-lg font-semibold mb-2">Member Details</h2>
-              <p>
-                <strong>Flat Number:</strong> {memberData.flatNumber}
-              </p>
-              <p>
-                <strong>Owner Name:</strong> {memberData.ownerNameMasked}
-              </p>
-              <p>
-                <strong>Co-Owner Name:</strong> {memberData.coOwnerNameMasked}
-              </p>
-              <p>
-                <strong>Phone Number:</strong> {memberData.phoneNumberMasked}
-              </p>
-              <p>
-                <strong>Email:</strong> {memberData.emailMasked}
-              </p>
+              <p><strong>Flat Number:</strong> {memberData.flatNumber}</p>
+              <p><strong>Owner Name:</strong> {memberData.ownerNameMasked}</p>
+              <p><strong>Co-Owner Name:</strong> {memberData.coOwnerNameMasked}</p>
+              <p><strong>Phone Number:</strong> {memberData.phoneNumberMasked}</p>
+              <p><strong>Email:</strong> {memberData.emailMasked}</p>
 
               {/* Update Button */}
               <button onClick={() => setShowUpdateForm((prev) => !prev)} className="mt-3 px-4 py-2 bg-orange-600 text-white rounded-lg">
@@ -249,50 +266,24 @@ export default function CertificatePage() {
                       alert("Details updated successfully!");
                       setShowUpdateForm(false);
                       handleSubmit(new Event("submit")); // refresh memberData
-                    // eslint-disable-next-line no-unused-vars
                     } catch (err) {
-                      alert("Error updating details");
+                      alert("Error updating details", err);
                     }
                   }}
                   className="mt-4 space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Owner Name"
-                    value={updatedOwner}
-                    onChange={(e) => setUpdatedOwner(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Co-Owner Name"
-                    value={updatedCoOwner}
-                    onChange={(e) => setUpdatedCoOwner(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Phone Number"
-                    value={updatedPhone}
-                    onChange={(e) => setUpdatedPhone(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={updatedEmail}
-                    onChange={(e) => setUpdatedEmail(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-
-                  <button type="submit" className="w-full bg-green-600 text-white py-2 rounded-lg">
-                    Save Changes
-                  </button>
+                  <input type="text" placeholder="Owner Name" value={updatedOwner} onChange={(e) => setUpdatedOwner(e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                  <input type="text" placeholder="Co-Owner Name" value={updatedCoOwner} onChange={(e) => setUpdatedCoOwner(e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                  <input type="text" placeholder="Phone Number" value={updatedPhone} onChange={(e) => setUpdatedPhone(e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                  <input type="email" placeholder="Email" value={updatedEmail} onChange={(e) => setUpdatedEmail(e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
+                  <button type="submit" className="w-full bg-green-600 text-white py-2 rounded-lg">Save Changes</button>
                 </form>
               )}
 
               {/* Phone Verification */}
               <div className="mt-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Use the phone number shown above (first number on record) to verify your account or you can update (Update Details) your phone number to receive an OTP. </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Use the phone number shown above (first number on record) to verify your account or you can update (Update Details) your phone number to receive an OTP.
+                </label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -328,35 +319,40 @@ export default function CertificatePage() {
                       {otpLoading ? "Sending OTP..." : "Send OTP"}
                     </button>
                   ) : (
-                    <div className="mt-4">
-                      <input
-                        type="text"
-                        value={otpInput}
-                        onChange={(e) => setOtpInput(e.target.value)}
-                        className="w-full px-3 py-2 border rounded-lg"
-                        placeholder="Enter OTP"
-                        disabled={isOtpVerified}
-                      />
-                      {otpError && <p className="text-red-600 mt-2">{otpError}</p>}
-
-                      {!isOtpVerified ? (
-                        <button
-                          onClick={handleVerifyOtp}
-                          className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-lg flex items-center justify-center"
-                          disabled={verifyOtpLoading}>
-                          {verifyOtpLoading ? (
-                            <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                            </svg>
-                          ) : null}
-                          {verifyOtpLoading ? "Verifying..." : "Verify OTP"}
-                        </button>
-                      ) : (
-                        <p className="text-green-600 mt-2">✅ OTP verified successfully!</p>
-                      )}
+                    <div className="mt-4 flex gap-2 justify-center">
+                      {otpDigits.map((digit, idx) => (
+                        <input
+                          key={idx}
+                          id={`otp-${idx}`}
+                          type="text"
+                          maxLength={1}
+                          value={digit}
+                          onChange={(e) => handleOtpChange(e, idx)}
+                          onKeyDown={(e) => handleOtpBackspace(e, idx)}
+                          className="w-12 h-12 text-center border rounded-lg text-lg"
+                          disabled={isOtpVerified}
+                        />
+                      ))}
                     </div>
                   )}
+                  {otpError && <p className="text-red-600 mt-2 text-center">{otpError}</p>}
+
+                  {!isOtpVerified && otpSent && (
+                    <button
+                      onClick={handleVerifyOtp}
+                      className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg flex items-center justify-center mx-auto"
+                      disabled={verifyOtpLoading}>
+                      {verifyOtpLoading ? (
+                        <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                      ) : null}
+                      {verifyOtpLoading ? "Verifying..." : "Verify OTP"}
+                    </button>
+                  )}
+
+                  {isOtpVerified && <p className="text-green-600 mt-2 text-center">✅ OTP verified successfully!</p>}
                 </>
               )}
             </div>
