@@ -184,7 +184,7 @@ export default function CertificatePage() {
       {/* Navbar */}
       <div className="w-full bg-blue-900">
         <nav className="bg-blue-900 max-w-[1200px] m-auto text-white px-6 py-4 shadow flex flex-col md:flex-row md:justify-between md:items-center">
-          <img width="40px" src="./dist/assets/IMG-20250619-WA0013.jpg"></img>
+          <img width="40px" src="../public/IMG-20250619-WA0013.jpg"></img>
           <div className="flex flex-col md:flex-row md:space-x-6 items-center text-center">
             <a href="https://www.sharanamaoa.in" className="underline-slide font-bold mb-1 md:mb-0">
               Home
