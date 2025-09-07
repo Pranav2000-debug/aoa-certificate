@@ -185,9 +185,9 @@ export default function CertificatePage() {
       {/* Navbar */}
       <div className="w-full bg-blue-900">
         <nav className="bg-blue-900 max-w-[1200px] m-auto text-white px-6 py-4 shadow flex flex-col md:flex-row md:justify-between md:items-center">
-          <img width="40px" src={logoImg}></img>
-          <div className="flex flex-col md:flex-row md:space-x-6 items-center text-center">
-            <a href="https://www.sharanamaoa.in" className="underline-slide font-bold mb-1 md:mb-0">
+          <img width="40px" src={logoImg} className="mb-4 mx-auto md:mx-0"></img>
+          <div className="flex flex-row space-x-5 justify-center md:flex-row md:space-x-6 items-center text-center">
+            <a href="https://www.sharanamaoa.in" className="underline-slide font-bold">
               Home
             </a>
             <a href="https://sharanamaoa.in/contact/" target="_blank" className="underline-slide font-bold">
@@ -202,7 +202,7 @@ export default function CertificatePage() {
 
       {/* Main Section */}
       <main className="flex-1 flex flex-col items-center justify-center px-4">
-        <h1 className="text-3xl font-poppins font-bold mb-10 text-blue-900">Great Value Sharanam</h1>
+        <h1 className="text-3xl font-poppins font-bold mb-10 text-blue-900 text-center">Great Value Sharanam</h1>
         <div
           className={`bg-white shadow-lg rounded-2xl p-8 w-full max-w-md transform transition-all duration-700 ease-out ${
             animateForm ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-100px]"
