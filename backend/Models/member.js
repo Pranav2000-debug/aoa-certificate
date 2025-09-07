@@ -20,9 +20,8 @@ const memberSchema = new mongoose.Schema({
   email: {
     type: String,
   },
-  otp: {
-    type: String, // Store OTP temporarily
-    default: null,
+  otpVerification: {
+    verificationId: String, // temporary storage
   },
   createdAt: {
     type: Date,
