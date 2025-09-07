@@ -81,7 +81,7 @@ export default function CertificatePage() {
     setNumberError("");
 
     if (phoneInput.length !== 10) {
-      setNumberError("Invalid phone number (check length)");
+      setNumberError("Invalid phone number (check length) or empty field ");
       return;
     }
     if (!flatNumber) {
@@ -130,7 +130,7 @@ export default function CertificatePage() {
     const val = e.target.value.replace(/\D/g, ""); // Only digits
     if (!val) return;
 
-    setOtpDigits(prev => prev.map((d, i) => (i === index ? val[0] : d)));
+    setOtpDigits((prev) => prev.map((d, i) => (i === index ? val[0] : d)));
 
     // Auto-focus next input
     if (index < 3) {
@@ -141,7 +141,7 @@ export default function CertificatePage() {
   // --- Handle OTP backspace ---
   const handleOtpBackspace = (e, index) => {
     if (e.key === "Backspace") {
-      setOtpDigits(prev => prev.map((d, i) => (i === index ? "" : d)));
+      setOtpDigits((prev) => prev.map((d, i) => (i === index ? "" : d)));
       if (index > 0) {
         document.getElementById(`otp-${index - 1}`).focus();
       }
@@ -182,20 +182,26 @@ export default function CertificatePage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-poppins">
       {/* Navbar */}
-      <nav className="bg-blue-900 text-white px-6 py-4 flex justify-between items-center shadow">
-        <h1 className="text-xl font-bold">Great Value Sharanam</h1>
-        <div className="space-x-6 mr-10">
-          <a href="https://www.sharanamaoa.in" className="underline-slide font-bold">
-            Home
-          </a>
-          <a href="mailto:aoa-support@email.com" className="underline-slide font-bold">
-            Contact
-          </a>
-        </div>
-      </nav>
+      <div className="w-full bg-blue-900">
+        <nav className="bg-blue-900 max-w-[1200px] m-auto text-white px-6 py-4 shadow flex flex-col md:flex-row md:justify-between md:items-center">
+          <img width="40px" heig src="src/assets/IMG-20250619-WA0013.jpg"></img>
+          <div className="flex flex-col md:flex-row md:space-x-6 items-center text-center">
+            <a href="https://www.sharanamaoa.in" className="underline-slide font-bold mb-1 md:mb-0">
+              Home
+            </a>
+            <a href="https://sharanamaoa.in/contact/" target="_blank" className="underline-slide font-bold">
+              Contact Page
+            </a>
+            <a href="mailto:aoa.gvs@gmail.com" className="underline-slide font-bold">
+              Mail
+            </a>
+          </div>
+        </nav>
+      </div>
 
       {/* Main Section */}
       <main className="flex-1 flex flex-col items-center justify-center px-4">
+        <h1 className="text-3xl font-poppins font-bold mb-10 text-blue-900">Great Value Sharanam</h1>
         <div
           className={`bg-white shadow-lg rounded-2xl p-8 w-full max-w-md transform transition-all duration-700 ease-out ${
             animateForm ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-100px]"
@@ -239,11 +245,21 @@ export default function CertificatePage() {
           {memberData && (
             <div className="mt-6 p-4 border rounded-lg bg-gray-100">
               <h2 className="text-lg font-semibold mb-2">Member Details</h2>
-              <p><strong>Flat Number:</strong> {memberData.flatNumber}</p>
-              <p><strong>Owner Name:</strong> {memberData.ownerNameMasked}</p>
-              <p><strong>Co-Owner Name:</strong> {memberData.coOwnerNameMasked}</p>
-              <p><strong>Phone Number:</strong> {memberData.phoneNumberMasked}</p>
-              <p><strong>Email:</strong> {memberData.emailMasked}</p>
+              <p>
+                <strong>Flat Number:</strong> {memberData.flatNumber}
+              </p>
+              <p>
+                <strong>Owner Name:</strong> {memberData.ownerNameMasked}
+              </p>
+              <p>
+                <strong>Co-Owner Name:</strong> {memberData.coOwnerNameMasked}
+              </p>
+              <p>
+                <strong>Phone Number:</strong> {memberData.phoneNumberMasked}
+              </p>
+              <p>
+                <strong>Email:</strong> {memberData.emailMasked}
+              </p>
 
               {/* Update Button */}
               <button onClick={() => setShowUpdateForm((prev) => !prev)} className="mt-3 px-4 py-2 bg-orange-600 text-white rounded-lg">
@@ -271,18 +287,45 @@ export default function CertificatePage() {
                     }
                   }}
                   className="mt-4 space-y-3">
-                  <input type="text" placeholder="Owner Name" value={updatedOwner} onChange={(e) => setUpdatedOwner(e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
-                  <input type="text" placeholder="Co-Owner Name" value={updatedCoOwner} onChange={(e) => setUpdatedCoOwner(e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
-                  <input type="text" placeholder="Phone Number" value={updatedPhone} onChange={(e) => setUpdatedPhone(e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
-                  <input type="email" placeholder="Email" value={updatedEmail} onChange={(e) => setUpdatedEmail(e.target.value)} className="w-full px-3 py-2 border rounded-lg"/>
-                  <button type="submit" className="w-full bg-green-600 text-white py-2 rounded-lg">Save Changes</button>
+                  <input
+                    type="text"
+                    placeholder="Owner Name"
+                    value={updatedOwner}
+                    onChange={(e) => setUpdatedOwner(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Co-Owner Name"
+                    value={updatedCoOwner}
+                    onChange={(e) => setUpdatedCoOwner(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Phone Number"
+                    value={updatedPhone}
+                    onChange={(e) => setUpdatedPhone(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    value={updatedEmail}
+                    onChange={(e) => setUpdatedEmail(e.target.value)}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  />
+                  <button type="submit" className="w-full bg-green-600 text-white py-2 rounded-lg">
+                    Save Changes
+                  </button>
                 </form>
               )}
 
               {/* Phone Verification */}
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Use the phone number shown above (first number on record) to verify your account or you can update (Update Details) your phone number to receive an OTP.
+                  Use the phone number shown above (first number on record) to verify your account or you can update (Update Details) your phone
+                  number to receive an OTP.
                 </label>
                 <input
                   type="text"
