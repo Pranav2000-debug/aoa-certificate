@@ -14,7 +14,7 @@ function maskName(str) {
 
 exports.addMember = async (req, res) => {
   try {
-    const { flatNumber, ownerName, coOwnerName, phoneNumber, email } = req.body;
+    const { flatNumber, membershipId, ownerName, coOwnerName, phoneNumber, email } = req.body;
 
     // Check if member already exists by flat number
     const existing = await Member.findOne({ flatNumber });
@@ -24,6 +24,7 @@ exports.addMember = async (req, res) => {
 
     const newMember = new Member({
       flatNumber,
+      membershipId,
       ownerName,
       coOwnerName,
       phoneNumber,

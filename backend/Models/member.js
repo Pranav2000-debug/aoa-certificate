@@ -6,6 +6,11 @@ const memberSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
+  membershipId: {
+    type: String,
+    required: true,
+    unique: true,
+  },
   ownerName: {
     type: String,
     required: true,
