@@ -66,7 +66,6 @@ export default function CertificatePage() {
     try {
       const res = await axios.post("https://aoa-certificate.onrender.com/find-member", { flatNumber: flatNum });
       setMemberData(res.data);
-      console.log(res.data);
     } catch (err) {
       setErrorData(err.response?.data?.message || "Something went wrong");
     } finally {
@@ -103,7 +102,6 @@ export default function CertificatePage() {
         flatNumber,
         phoneNumber: phoneInput,
       });
-      console.log(response.data.unmaskedMemberData);
       setMemberData(response.data.unmaskedMemberData);
       if (response.data.exists) {
         setIsPhoneVerified(true);
