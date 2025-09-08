@@ -1,8 +1,5 @@
-// const twilio = require("twilio");
 const Member = require("../Models/member");
 const axios = require("axios");
-
-// const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 
 exports.sendOtpSms = async (req, res) => {
   try {

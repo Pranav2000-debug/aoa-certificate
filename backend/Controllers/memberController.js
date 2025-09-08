@@ -3,12 +3,12 @@ const Member = require("../Models/member");
 // Util functions
 function maskString(str, visibleStart = 3, visibleEnd = 2) {
   if (!str) return "N/A";
-  if (str.length <= visibleStart + visibleEnd) return str; // too short
+  if (str.length <= visibleStart + visibleEnd) return str; 
   return str.substring(0, visibleStart) + "*".repeat(str.length - (visibleStart + visibleEnd)) + str.substring(str.length - visibleEnd);
 }
 function maskName(str) {
   if (!str) return "N/A";
-  if (str.length <= 2) return str; // too short
+  if (str.length <= 2) return str; 
   return str[0] + "*".repeat(str.length - 2) + str[str.length - 1];
 }
 
@@ -82,10 +82,11 @@ exports.verifyPhoneNumber = async (req, res) => {
 
     const unmaskedMemberData = {
       flatNumber: member.flatNumber,
-      ownerNameMasked: member.ownerName, // use same key as React expects
-      coOwnerNameMasked: member.coOwnerName, // use same key
+      membershipId: member.membershipId,
+      ownerNameMasked: member.ownerName, 
+      coOwnerNameMasked: member.coOwnerName, 
       phoneNumberMasked: maskString(member.phoneNumber, 2, 2), // keep masked phone
-      emailMasked: member.email, // full email
+      emailMasked: member.email, 
     };
     res.json({ exists: true, message: "Phone number verified.", unmaskedMemberData });
   } catch (error) {
