@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import logoImg from "../src/assets/IMG-20250619-WA0013.jpg"
+import logoImg from "../src/assets/IMG-20250619-WA0013.jpg";
+import { generateCertificatePdf } from "./util/generateCertificate";
 
 export default function CertificatePage() {
   // --- State ---
@@ -51,9 +52,8 @@ export default function CertificatePage() {
     return `${letter}-${digits}`;
   };
 
-  // --- Submit Flat Number to get member details ---
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // --- Add this helper inside the component (near other handlers) ---
+  const fetchMember = async (flatNum) => {
     setErrorData(null);
     setMemberData(null);
     setIsLoading(true);
@@ -63,11 +63,8 @@ export default function CertificatePage() {
     setOtpSent(false);
     setIsOtpVerified(false);
 
-    const formattedFlatNumber = formatFlatNumber(flatNumber);
-    setFlatNumber(formattedFlatNumber);
-
     try {
-      const res = await axios.post("https://aoa-certificate.onrender.com/find-member", { flatNumber: formattedFlatNumber });
+      const res = await axios.post("https://aoa-certificate.onrender.com/find-member", { flatNumber: flatNum });
       setMemberData(res.data);
       console.log(res.data);
     } catch (err) {
@@ -75,6 +72,17 @@ export default function CertificatePage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // --- Submit Flat Number to get member details ---
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // format and guard like before
+    const formattedFlatNumber = formatFlatNumber(flatNumber) || flatNumber;
+    setFlatNumber(formattedFlatNumber);
+
+    // call the reusable fetch helper
+    await fetchMember(formattedFlatNumber);
   };
 
   // --- Verify Phone Number ---
@@ -250,6 +258,9 @@ export default function CertificatePage() {
                 <strong>Flat Number:</strong> {memberData.flatNumber}
               </p>
               <p>
+                <strong>membershipId:</strong> {memberData.membershipId}
+              </p>
+              <p>
                 <strong>Owner Name:</strong> {memberData.ownerNameMasked}
               </p>
               <p>
@@ -282,9 +293,11 @@ export default function CertificatePage() {
                       });
                       alert("Details updated successfully!");
                       setShowUpdateForm(false);
-                      handleSubmit(new Event("submit")); // refresh memberData
+                      // handleSubmit(new Event("submit")); // refresh memberData
+                      await fetchMember(flatNumber);
                     } catch (err) {
-                      alert("Error updating details", err);
+                      alert("Error updating details");
+                      console.log(err);
                     }
                   }}
                   className="mt-4 space-y-3">
@@ -321,7 +334,6 @@ export default function CertificatePage() {
                   </button>
                 </form>
               )}
-
               {/* Phone Verification */}
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -396,7 +408,16 @@ export default function CertificatePage() {
                     </button>
                   )}
 
-                  {isOtpVerified && <p className="text-green-600 mt-2 text-center">✅ OTP verified successfully!</p>}
+                  {isOtpVerified && (
+                    <div className="mt-4 text-center">
+                      <p className="text-green-600 mt-2">✅ OTP verified successfully!</p>
+                      <button
+                        onClick={() => generateCertificatePdf(memberData).catch(() => alert("Failed to generate certificate. Please try again."))}
+                        className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg">
+                        Download your certificate
+                      </button>
+                    </div>
+                  )}
                 </>
               )}
             </div>
