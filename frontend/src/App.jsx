@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+// src/App.jsx (or CertificatePage.jsx)
+import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import logoImg from "../src/assets/IMG-20250619-WA0013.jpg";
 import { generateCertificatePdf } from "./util/generateCertificate";
@@ -21,6 +22,10 @@ export default function CertificatePage() {
   const [otpLoading, setOtpLoading] = useState(false);
   const [verifyOtpLoading, setVerifyOtpLoading] = useState(false);
 
+  // OTP resend cooldown (30s for resend)
+  const [otpCooldown, setOtpCooldown] = useState(0); // seconds remaining
+  const otpTimerRef = useRef(null);
+
   // --- Update Form States ---
   const [showUpdateForm, setShowUpdateForm] = useState(false);
   const [updatedOwner, setUpdatedOwner] = useState("");
@@ -34,6 +39,16 @@ export default function CertificatePage() {
 
   useEffect(() => {
     setAnimateForm(true);
+  }, []);
+
+  // Cleanup OTP timer on unmount
+  useEffect(() => {
+    return () => {
+      if (otpTimerRef.current) {
+        clearInterval(otpTimerRef.current);
+        otpTimerRef.current = null;
+      }
+    };
   }, []);
 
   // --- Flat Number Handlers ---
@@ -52,7 +67,6 @@ export default function CertificatePage() {
     return `${letter}-${digits}`;
   };
 
-  // --- Add this helper inside the component (near other handlers) ---
   const fetchMember = async (flatNum) => {
     setErrorData(null);
     setMemberData(null);
@@ -76,11 +90,8 @@ export default function CertificatePage() {
   // --- Submit Flat Number to get member details ---
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // format and guard like before
     const formattedFlatNumber = formatFlatNumber(flatNumber) || flatNumber;
     setFlatNumber(formattedFlatNumber);
-
-    // call the reusable fetch helper
     await fetchMember(formattedFlatNumber);
   };
 
@@ -116,17 +127,44 @@ export default function CertificatePage() {
     }
   };
 
-  // --- Send OTP ---
+  // --- Send OTP (first-time send, no cooldown) ---
   const handleSendOtp = async () => {
     setOtpLoading(true);
     try {
-      const res = await axios.post("https://aoa-certificate.onrender.com/send-otp", {
-        flatNumber,
-      });
+      const res = await axios.post("https://aoa-certificate.onrender.com/send-otp", { flatNumber });
       console.log(res.data);
       setOtpSent(true);
+      // don't start cooldown here — allow immediate resend link to appear (resend handler manages cooldown)
     } catch (err) {
       console.error(err);
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // --- Resend OTP (30s cooldown) ---
+  const handleResendOtp = async () => {
+    setOtpLoading(true);
+    try {
+      const res = await axios.post("https://aoa-certificate.onrender.com/send-otp", { flatNumber });
+      console.log("Resent OTP:", res.data);
+
+      // start 30s cooldown
+      if (!otpTimerRef.current) {
+        setOtpCooldown(30);
+        otpTimerRef.current = setInterval(() => {
+          setOtpCooldown((prev) => {
+            if (prev <= 1) {
+              clearInterval(otpTimerRef.current);
+              otpTimerRef.current = null;
+              return 0;
+            }
+            return prev - 1;
+          });
+        }, 1000);
+      }
+    } catch (err) {
+      console.error("Resend OTP failed", err);
     } finally {
       setOtpLoading(false);
     }
@@ -141,7 +179,8 @@ export default function CertificatePage() {
 
     // Auto-focus next input
     if (index < 3) {
-      document.getElementById(`otp-${index + 1}`).focus();
+      const next = document.getElementById(`otp-${index + 1}`);
+      if (next) next.focus();
     }
   };
 
@@ -150,7 +189,8 @@ export default function CertificatePage() {
     if (e.key === "Backspace") {
       setOtpDigits((prev) => prev.map((d, i) => (i === index ? "" : d)));
       if (index > 0) {
-        document.getElementById(`otp-${index - 1}`).focus();
+        const prevEl = document.getElementById(`otp-${index - 1}`);
+        if (prevEl) prevEl.focus();
       }
     }
   };
@@ -191,12 +231,12 @@ export default function CertificatePage() {
       {/* Navbar */}
       <div className="w-full bg-blue-900">
         <nav className="bg-blue-900 max-w-[1200px] m-auto text-white px-6 py-4 shadow flex flex-col md:flex-row md:justify-between md:items-center">
-          <img width="40px" src={logoImg} className="mb-4 mx-auto md:mx-0"></img>
+          <img width="40px" src={logoImg} className="mb-4 mx-auto md:mx-0" alt="logo" />
           <div className="flex flex-row space-x-5 justify-center md:flex-row md:space-x-6 items-center text-center">
             <a href="https://www.sharanamaoa.in" className="underline-slide font-bold">
               Home
             </a>
-            <a href="https://sharanamaoa.in/contact/" target="_blank" className="underline-slide font-bold">
+            <a href="https://sharanamaoa.in/contact/" target="_blank" className="underline-slide font-bold" rel="noreferrer">
               Contact Page
             </a>
             <a href="mailto:aoa.gvs@gmail.com" className="underline-slide font-bold">
@@ -291,7 +331,6 @@ export default function CertificatePage() {
                       });
                       alert("Details updated successfully!");
                       setShowUpdateForm(false);
-                      // handleSubmit(new Event("submit")); // refresh memberData
                       await fetchMember(flatNumber);
                     } catch (err) {
                       alert("Error updating details");
@@ -359,7 +398,9 @@ export default function CertificatePage() {
               ) : (
                 <>
                   <p className="text-green-600 mt-2">Phone number matches the apartment owner's phone number.</p>
-                  {!otpSent ? (
+
+                  {/* First-time Send OTP button (shown only until otpSent) */}
+                  {!otpSent && (
                     <button
                       onClick={handleSendOtp}
                       className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg flex items-center justify-center"
@@ -372,49 +413,71 @@ export default function CertificatePage() {
                       ) : null}
                       {otpLoading ? "Sending OTP..." : "Send OTP"}
                     </button>
-                  ) : (
-                    <div className="mt-4 flex gap-2 justify-center">
-                      {otpDigits.map((digit, idx) => (
-                        <input
-                          key={idx}
-                          id={`otp-${idx}`}
-                          type="text"
-                          maxLength={1}
-                          value={digit}
-                          onChange={(e) => handleOtpChange(e, idx)}
-                          onKeyDown={(e) => handleOtpBackspace(e, idx)}
-                          className="w-12 h-12 text-center border rounded-lg text-lg"
-                          disabled={isOtpVerified}
-                        />
-                      ))}
-                    </div>
-                  )}
-                  {otpError && <p className="text-red-600 mt-2 text-center">{otpError}</p>}
-
-                  {!isOtpVerified && otpSent && (
-                    <button
-                      onClick={handleVerifyOtp}
-                      className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg flex items-center justify-center mx-auto"
-                      disabled={verifyOtpLoading}>
-                      {verifyOtpLoading ? (
-                        <svg className="animate-spin h-5 w-5 mr-2 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-                        </svg>
-                      ) : null}
-                      {verifyOtpLoading ? "Verifying..." : "Verify OTP"}
-                    </button>
                   )}
 
-                  {isOtpVerified && (
-                    <div className="mt-4 text-center">
-                      <p className="text-green-600 mt-2">✅ OTP verified successfully!</p>
-                      <button
-                        onClick={() => generateCertificatePdf(memberData).catch(() => alert("Failed to generate certificate. Please try again."))}
-                        className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg">
-                        Download your certificate
-                      </button>
-                    </div>
+                  {/* After OTP sent: show inputs */}
+                  {otpSent && (
+                    <>
+                      <div className="mt-4 flex gap-2 justify-center">
+                        {otpDigits.map((digit, idx) => (
+                          <input
+                            key={idx}
+                            id={`otp-${idx}`}
+                            type="text"
+                            maxLength={1}
+                            value={digit}
+                            onChange={(e) => handleOtpChange(e, idx)}
+                            onKeyDown={(e) => handleOtpBackspace(e, idx)}
+                            className="w-12 h-12 text-center border rounded-lg text-lg"
+                            disabled={isOtpVerified}
+                          />
+                        ))}
+                      </div>
+
+                      {otpError && <p className="text-red-600 mt-2 text-center">{otpError}</p>}
+
+                      {!isOtpVerified && (
+                        <div className="flex flex-col items-center">
+                          <button
+                            onClick={handleVerifyOtp}
+                            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded-lg flex items-center justify-center mx-auto"
+                            disabled={verifyOtpLoading}>
+                            {verifyOtpLoading ? (
+                              <svg
+                                className="animate-spin h-5 w-5 mr-2 text-white"
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill="none"
+                                viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                              </svg>
+                            ) : null}
+                            {verifyOtpLoading ? "Verifying..." : "Verify OTP"}
+                          </button>
+
+                          {/* Resend OTP small link with 30s cooldown */}
+                          <div className="mt-2">
+                            <button
+                              onClick={handleResendOtp}
+                              className="text-blue-600 text-sm underline disabled:opacity-50"
+                              disabled={otpCooldown > 0 || otpLoading}>
+                              {otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : "Resend OTP"}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {isOtpVerified && (
+                        <div className="mt-4 text-center">
+                          <p className="text-green-600 mt-2">✅ OTP verified successfully!</p>
+                          <button
+                            onClick={() => generateCertificatePdf(memberData).catch(() => alert("Failed to generate certificate. Please try again."))}
+                            className="mt-3 px-4 py-2 bg-indigo-600 text-white rounded-lg">
+                            Download your certificate
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
