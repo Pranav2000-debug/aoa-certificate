@@ -53,6 +53,7 @@ exports.getMemberByFlatNumber = async (req, res) => {
 
     const response = {
       flatNumber: member.flatNumber,
+      membershipId: member.membershipId,
       ownerNameMasked: maskName(member.ownerName),
       coOwnerNameMasked: member.coOwnerName ? maskName(member.coOwnerName) : "N/A",
       phoneNumberMasked: maskString(member.phoneNumber, 2, 2), // show first 2 and last 2 digits
