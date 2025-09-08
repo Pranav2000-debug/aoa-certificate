@@ -37,7 +37,7 @@ export async function generateCertificatePdf(memberData, options = {}) {
     // remove ALL non-alphanumeric chars (so "N*A", "N/A", " n a " -> "na")
     const normalized = s.replace(/[^a-z0-9]/gi, "").toLowerCase();
 
-    if (!normalized) return false; // e.g. "-" -> ""
+    if (!normalized) return false;
     const placeholders = new Set(["na", "0", "none"]);
     return !placeholders.has(normalized);
   }
@@ -63,7 +63,7 @@ export async function generateCertificatePdf(memberData, options = {}) {
     const ownerName = memberData.ownerName || memberData.ownerNameMasked || "N/A";
     const rawCoOwner = memberData.coOwnerName || memberData.coOwnerNameMasked || "";
 
-    // Helper: draw wrapped text (basic word-wrapping)
+    // Helper: draw wrapped text
     function drawWrappedText(page, text, { x, y, size, maxWidth, lineHeight = null }) {
       if (!text) return;
       const words = String(text).split(/\s+/);
@@ -94,7 +94,7 @@ export async function generateCertificatePdf(memberData, options = {}) {
 
     const issuedDate = new Date().toLocaleDateString();
 
-    // 5) Draw fields (you can tweak positions via options.positions)
+    // 5) Draw fields
     drawWrappedText(page, membershipId, positions.membershipId);
     drawWrappedText(page, ownerName, positions.ownerName);
     if (isMeaningfulName(true)) {
