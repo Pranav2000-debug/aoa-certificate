@@ -18,5 +18,8 @@
     "express": "^5.1.0",
     "mongoose": "^8.16.1",
     "twilio": "^5.8.2"
+  },
+  "devDependencies": {
+    "autocannon": "^8.0.0"
   }
 }

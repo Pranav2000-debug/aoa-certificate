@@ -11,22 +11,6 @@ exports.sendOtpSms = async (req, res) => {
       return res.status(404).json({ message: "No member found with this flat number" });
     }
 
-    /* ===========================
-       TEST MODE SHORT-CIRCUIT (INJECTED)
-       If TEST_MODE=true in env, simulate provider response here
-       so we DON'T call the real SMS provider during load/testing.
-       This block should be placed BEFORE any external request.
-       =========================== */
-    if (process.env.TEST_MODE === "true") {
-      member.otpVerification = { verificationId: "TEST-VERIF-ID" };
-      await member.save();
-      console.log(`TEST_MODE: simulated OTP send for ${member.flatNumber}`);
-      return res.json({ success: true, message: "OTP send simulated (TEST_MODE)" });
-    }
-    /* ===========================
-       END TEST MODE SHORT-CIRCUIT
-       =========================== */
-
     const url = `https://cpaas.messagecentral.com/verification/v3/send?countryCode=91&customerId=${process.env.MESSAGECENTRAL_CUSTOMER_ID}&flowType=SMS&mobileNumber=${member.phoneNumber}`;
 
     // Message central method
@@ -68,23 +52,6 @@ exports.verifyOtp = async (req, res) => {
     if (!member || !member.otpVerification?.verificationId) {
       return res.status(400).json({ message: "No OTP request found for this member" });
     }
-
-
-     /* ===========================
-       TEST MODE VERIFY (INJECTED)
-       If TEST_MODE=true and we previously set TEST-VERIF-ID,
-       accept verification without calling provider.
-       This lets verify flow succeed during testing.
-       =========================== */
-    if (process.env.TEST_MODE === "true" && member.otpVerification?.verificationId === "TEST-VERIF-ID") {
-      member.otpVerification = { verificationId: null };
-      await member.save();
-      console.log(`TEST_MODE: simulated OTP verify for ${member.flatNumber}`);
-      return res.json({ success: true, message: "OTP verified (TEST_MODE)" });
-    }
-    /* ===========================
-       END TEST MODE VERIFY
-       =========================== */
 
     const verificationId = member.otpVerification.verificationId;
     console.log(verificationId);
