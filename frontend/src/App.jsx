@@ -27,11 +27,7 @@ export default function CertificatePage() {
   const otpTimerRef = useRef(null);
 
   // --- Update Form States ---
-  const [showUpdateForm, setShowUpdateForm] = useState(false);
-  const [updatedOwner, setUpdatedOwner] = useState("");
-  const [updatedCoOwner, setUpdatedCoOwner] = useState("");
-  const [updatedPhone, setUpdatedPhone] = useState("");
-  const [updatedEmail, setUpdatedEmail] = useState("");
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
 
   // Loader and transitions
   const [isLoading, setIsLoading] = useState(false);
@@ -245,7 +241,46 @@ export default function CertificatePage() {
           </div>
         </nav>
       </div>
+    {/* Update form modal */}
+      {showUpdateModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black opacity-50" onClick={() => setShowUpdateModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-lg max-w-lg w-[90%] p-6 z-60">
+            <h3 className="text-lg font-semibold mb-3">Request to update member details</h3>
+            <p className="text-sm mb-4">
+              Please send the following details along with a **proof of ownership** to <span className="font-medium">aoa.gvs@gmail.com</span>. We will
+              confirm the update within <strong>3–5 working days</strong> via email — then you can come back and download your certificate.
+            </p>
 
+            <ul className="list-disc list-inside text-sm mb-4 space-y-1">
+              <li>Full name of owner (and co-owner if any)</li>
+              <li>Flat number</li>
+              <li>Contact number</li>
+              <li>Proof of ownership</li>
+              <li>Screenshot of membership payment if done</li>
+            </ul>
+
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => {
+                  navigator.clipboard?.writeText("aoa.gvs@gmail.com");
+                  alert("Email address copied to clipboard");
+                }}
+                className="px-3 py-2 bg-gray-100 rounded-md text-sm">
+                Copy email
+              </button>
+
+              <a href="mailto:aoa.gvs@gmail.com" className="px-3 py-2 bg-blue-600 text-white rounded-md text-sm">
+                Open mail
+              </a>
+
+              <button onClick={() => setShowUpdateModal(false)} className="px-3 py-2 bg-white border rounded-md text-sm">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Main Section */}
       <main className="flex-1 flex flex-col items-center justify-center px-4">
         <h1 className="text-3xl font-poppins font-bold mb-10 text-blue-900 text-center">Great Value Sharanam</h1>
@@ -312,65 +347,11 @@ export default function CertificatePage() {
               </p>
 
               {/* Update Button */}
-              <button onClick={() => setShowUpdateForm((prev) => !prev)} className="mt-3 px-4 py-2 bg-orange-600 text-white rounded-lg">
-                {showUpdateForm ? "Cancel Update" : "Update Details"}
+              {/* Update Button (opens modal with instructions) */}
+              <button onClick={() => setShowUpdateModal(true)} className="mt-3 px-4 py-2 bg-orange-600 text-white rounded-lg">
+                Update Details
               </button>
 
-              {/* Update Form */}
-              {showUpdateForm && (
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    try {
-                      await axios.put("https://aoa-certificate.onrender.com/update-member", {
-                        flatNumber,
-                        ownerName: updatedOwner,
-                        coOwnerName: updatedCoOwner,
-                        phoneNumber: updatedPhone,
-                        email: updatedEmail,
-                      });
-                      alert("Details updated successfully!");
-                      setShowUpdateForm(false);
-                      await fetchMember(flatNumber);
-                    } catch (err) {
-                      alert("Error updating details");
-                      console.log(err);
-                    }
-                  }}
-                  className="mt-4 space-y-3">
-                  <input
-                    type="text"
-                    placeholder="Owner Name"
-                    value={updatedOwner}
-                    onChange={(e) => setUpdatedOwner(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Co-Owner Name"
-                    value={updatedCoOwner}
-                    onChange={(e) => setUpdatedCoOwner(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Phone Number"
-                    value={updatedPhone}
-                    onChange={(e) => setUpdatedPhone(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    value={updatedEmail}
-                    onChange={(e) => setUpdatedEmail(e.target.value)}
-                    className="w-full px-3 py-2 border rounded-lg"
-                  />
-                  <button type="submit" className="w-full bg-green-600 text-white py-2 rounded-lg">
-                    Save Changes
-                  </button>
-                </form>
-              )}
               {/* Phone Verification */}
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -487,7 +468,7 @@ export default function CertificatePage() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-100 text-center py-4 text-sm text-gray-600">© {new Date().getFullYear()} Great Value Sharanam AOA</footer>
+      <footer className="bg-gray-100 text-center py-4 text-sm text-gray-600 mt-8">© {new Date().getFullYear()} Great Value Sharanam AOA</footer>
     </div>
   );
 }
