@@ -32,6 +32,7 @@ export default function CertificatePage() {
   // Loader and transitions
   const [isLoading, setIsLoading] = useState(false);
   const [animateForm, setAnimateForm] = useState(false);
+  const [showServerWakeupMessage, setShowServerWakeupMessage] = useState(false);
 
   useEffect(() => {
     setAnimateForm(true);
@@ -66,13 +67,12 @@ export default function CertificatePage() {
   const fetchMember = async (flatNum) => {
     setErrorData(null);
     setMemberData(null);
-    setIsLoading(true);
+
     setIsPhoneVerified(false);
     setPhoneInput("");
     setOtpDigits(["", "", "", ""]);
     setOtpSent(false);
     setIsOtpVerified(false);
-
     try {
       const res = await axios.post("https://aoa-certificate.onrender.com/find-member", { flatNumber: flatNum });
       setMemberData(res.data);
@@ -86,9 +86,22 @@ export default function CertificatePage() {
   // --- Submit Flat Number to get member details ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const serverDelayTime = Date.now();
     const formattedFlatNumber = formatFlatNumber(flatNumber) || flatNumber;
     setFlatNumber(formattedFlatNumber);
+    setIsLoading(true);
+
+    const timeoutId = setTimeout(() => {
+      if (isLoading) {
+        setShowServerWakeupMessage(true);
+      }
+    }, 15000);
+
     await fetchMember(formattedFlatNumber);
+    clearTimeout(timeoutId);
+    setShowServerWakeupMessage(false);
+    const timeElapsed = (Date.now() - serverDelayTime) / 1000;
+    console.log(timeElapsed);
   };
 
   // --- Verify Phone Number ---
@@ -118,7 +131,7 @@ export default function CertificatePage() {
       }
     } catch (err) {
       console.log(err);
-      setNumberError("Server error while verifying phone number");
+      setNumberError("Phone number does not match the above shown number");
       setIsPhoneVerified(false);
     }
   };
@@ -241,7 +254,7 @@ export default function CertificatePage() {
           </div>
         </nav>
       </div>
-    {/* Update form modal */}
+      {/* Update form modal */}
       {showUpdateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black opacity-50" onClick={() => setShowUpdateModal(false)} />
@@ -257,7 +270,6 @@ export default function CertificatePage() {
               <li>Flat number</li>
               <li>Contact number</li>
               <li>Proof of ownership</li>
-              <li>Screenshot of membership payment if done</li>
             </ul>
 
             <div className="flex gap-3 justify-end">
@@ -314,7 +326,7 @@ export default function CertificatePage() {
           {isLoading && (
             <div className="mt-6 p-4 border rounded-lg bg-yellow-50 text-yellow-800 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto mb-3"></div>
-              <p>Waking up the server... this may take 30–60 seconds ⏳</p>
+              {showServerWakeupMessage ? <p>Waking up the server... this may take 20–30 seconds ⏳</p> : <p>Loading...</p>}
             </div>
           )}
 
@@ -355,8 +367,8 @@ export default function CertificatePage() {
               {/* Phone Verification */}
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Use the phone number shown above (first number on record) to verify your account or you can update (Update Details) your phone
-                  number to receive an OTP.
+                  Use the phone number shown above (first number on record) to verify your account. To update your details click on{" "}
+                  <b>Update Details.</b>
                 </label>
                 <input
                   type="text"
