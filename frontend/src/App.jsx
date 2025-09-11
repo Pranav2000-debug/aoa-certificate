@@ -48,6 +48,11 @@ export default function CertificatePage() {
     };
   }, []);
 
+  // function for putting AOA at the end
+  function changeMemberId(str) {
+    const [first, ...rest] = str.split("/");
+    return [...rest, first].join("/");
+  }
   // --- Flat Number Handlers ---
   const handleFlatNumberChange = (e) => {
     let v = e.target.value.toUpperCase();
@@ -73,8 +78,18 @@ export default function CertificatePage() {
     setOtpDigits(["", "", "", ""]);
     setOtpSent(false);
     setIsOtpVerified(false);
+    setIsLoading(true);
+
+    // check
+    const timeoutId = setTimeout(() => {
+      setShowServerWakeupMessage(true);
+      console.log("ran");
+    }, 7000);
+
     try {
       const res = await axios.post("https://aoa-certificate.onrender.com/find-member", { flatNumber: flatNum });
+      clearTimeout(timeoutId);
+      setShowServerWakeupMessage(false);
       setMemberData(res.data);
     } catch (err) {
       setErrorData(err.response?.data?.message || "Something went wrong");
@@ -89,17 +104,9 @@ export default function CertificatePage() {
     const serverDelayTime = Date.now();
     const formattedFlatNumber = formatFlatNumber(flatNumber) || flatNumber;
     setFlatNumber(formattedFlatNumber);
-    setIsLoading(true);
-
-    const timeoutId = setTimeout(() => {
-      if (isLoading) {
-        setShowServerWakeupMessage(true);
-      }
-    }, 15000);
 
     await fetchMember(formattedFlatNumber);
-    clearTimeout(timeoutId);
-    setShowServerWakeupMessage(false);
+
     const timeElapsed = (Date.now() - serverDelayTime) / 1000;
     console.log(timeElapsed);
   };
@@ -239,8 +246,11 @@ export default function CertificatePage() {
     <div className="min-h-screen bg-gray-50 flex flex-col font-poppins">
       {/* Navbar */}
       <div className="w-full bg-blue-900">
-        <nav className="bg-blue-900 max-w-[1200px] m-auto text-white px-6 py-4 shadow flex flex-col md:flex-row md:justify-between md:items-center">
-          <img width="40px" src={logoImg} className="mb-4 mx-auto md:mx-0" alt="logo" />
+        <nav className="bg-blue-900 w-full text-white px-10 py-4 shadow flex flex-col gap-2 sm:flex-row items-center justify-between">
+          <div className="w-[240px] flex gap-2 pl-2">
+            <img width="40px" src={logoImg} alt="logo" />
+            <h1 className="text-sm font-poppins font-bold self-end text-white">Great Value Sharanam</h1>
+          </div>
           <div className="flex flex-row space-x-5 justify-center md:flex-row md:space-x-6 items-center text-center">
             <a href="https://www.sharanamaoa.in" className="underline-slide font-bold">
               Home
@@ -295,7 +305,6 @@ export default function CertificatePage() {
       )}
       {/* Main Section */}
       <main className="flex-1 flex flex-col items-center justify-center px-4">
-        <h1 className="text-3xl font-poppins font-bold mb-10 text-blue-900 text-center">Great Value Sharanam</h1>
         <div
           className={`bg-white shadow-lg rounded-2xl p-8 w-full max-w-md transform transition-all duration-700 ease-out ${
             animateForm ? "opacity-100 translate-y-0" : "opacity-0 translate-y-[-100px]"
@@ -326,7 +335,7 @@ export default function CertificatePage() {
           {isLoading && (
             <div className="mt-6 p-4 border rounded-lg bg-yellow-50 text-yellow-800 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-yellow-600 mx-auto mb-3"></div>
-              {showServerWakeupMessage ? <p>Waking up the server... this may take 20–30 seconds ⏳</p> : <p>Loading...</p>}
+              {showServerWakeupMessage ? <p>Waking up the server... this may take 10–15 seconds ⏳</p> : <p>Loading...</p>}
             </div>
           )}
 
@@ -343,7 +352,7 @@ export default function CertificatePage() {
                 <strong>Flat Number:</strong> {memberData.flatNumber}
               </p>
               <p>
-                <strong>membershipId:</strong> {memberData.membershipId}
+                <strong>membershipId:</strong> {changeMemberId(memberData.membershipId)}
               </p>
               <p>
                 <strong>Owner Name:</strong> {memberData.ownerNameMasked}
@@ -367,7 +376,7 @@ export default function CertificatePage() {
               {/* Phone Verification */}
               <div className="mt-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Use the phone number shown above (first number on record) to verify your account. To update your details click on{" "}
+                  Use the phone number <b>shown above</b> (first number on record) to verify your account. To update your details click on{" "}
                   <b>Update Details.</b>
                 </label>
                 <input

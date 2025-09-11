@@ -1,6 +1,7 @@
 // src/utils/generateCertificate.js
 import { PDFDocument, StandardFonts } from "pdf-lib";
 
+
 /**
  * generateCertificatePdf
  * - Fills the provided PDF template with member data and triggers a download.
@@ -13,6 +14,14 @@ import { PDFDocument, StandardFonts } from "pdf-lib";
  *    - positions: object to override x/y/size/maxWidth for fields
  *    - filenamePrefix: optional string prepended to filename
  */
+
+// Util 
+function changeMemberId(str) {
+  const [first, ...rest] = str.split('/');
+   return [...rest, first].join('/')
+}
+
+
 export async function generateCertificatePdf(memberData, options = {}) {
   if (!memberData) throw new Error("memberData is required");
 
@@ -58,6 +67,7 @@ export async function generateCertificatePdf(memberData, options = {}) {
 
     // 4) Prepare values (preferring full names where available)
     const membershipId = memberData.membershipId || memberData.membershipIdMasked || "N/A";
+    const revMemberShipId = changeMemberId(membershipId);
     const flatNumber = memberData.flatNumber.split("-")[1].slice(1) || "N/A";
     const tower = memberData.flatNumber && String(memberData.flatNumber).includes("-") ? String(memberData.flatNumber).split("-")[0] : "N/A";
     const ownerName = memberData.ownerName || memberData.ownerNameMasked || "N/A";
@@ -95,7 +105,7 @@ export async function generateCertificatePdf(memberData, options = {}) {
     const issuedDate = new Date().toLocaleDateString();
 
     // 5) Draw fields
-    drawWrappedText(page, membershipId, positions.membershipId);
+    drawWrappedText(page, revMemberShipId, positions.membershipId);
     drawWrappedText(page, ownerName, positions.ownerName);
     if (isMeaningfulName(true)) {
       drawWrappedText(page, rawCoOwner, positions.coOwnerName);
