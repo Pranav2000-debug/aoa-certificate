@@ -80,16 +80,9 @@ export default function CertificatePage() {
     setIsOtpVerified(false);
     setIsLoading(true);
 
-    // check
-    const timeoutId = setTimeout(() => {
-      setShowServerWakeupMessage(true);
-      console.log("ran");
-    }, 7000);
-
     try {
       const res = await axios.post("https://aoa-certificate.onrender.com/find-member", { flatNumber: flatNum });
-      clearTimeout(timeoutId);
-      setShowServerWakeupMessage(false);
+
       setMemberData(res.data);
     } catch (err) {
       setErrorData(err.response?.data?.message || "Something went wrong");
@@ -105,7 +98,14 @@ export default function CertificatePage() {
     const formattedFlatNumber = formatFlatNumber(flatNumber) || flatNumber;
     setFlatNumber(formattedFlatNumber);
 
+    const timeoutId = setTimeout(() => {
+      setShowServerWakeupMessage(true);
+      console.log("ran");
+    }, 4500);
+
     await fetchMember(formattedFlatNumber);
+    clearTimeout(timeoutId);
+    setShowServerWakeupMessage(false);
 
     const timeElapsed = (Date.now() - serverDelayTime) / 1000;
     console.log(timeElapsed);
@@ -324,6 +324,7 @@ export default function CertificatePage() {
                 className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-600 focus:outline-none"
                 value={flatNumber}
                 onChange={handleFlatNumberChange}
+                maxLength={7}
               />
             </div>
 
@@ -340,36 +341,44 @@ export default function CertificatePage() {
           )}
 
           {errorData && (
-            <div className="p-4 mb-4 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
-              <p>{errorData}</p>
+            <div className="p-4 mb-4 mt-2 text-sm text-red-700 bg-red-100 rounded-lg" role="alert">
+              <p>Flat number {flatNumber} is not registered as a flat owner as per our records.</p>
+              <p>
+                Please "
+                <a href="https://forms.gle/yNuHstwnP9ThGW9u9" target="blank" className="text-blue-900 font-bold hover:underline hover:text-blue-600">
+                  Click Here
+                </a>
+                " to submit a your member details.
+              </p>
             </div>
           )}
 
           {memberData && (
             <div className="mt-6 p-4 border rounded-lg bg-gray-100">
-              <h2 className="text-lg font-semibold mb-2">Member Details</h2>
-              <p>
-                <strong>Flat Number:</strong> {memberData.flatNumber}
-              </p>
-              <p>
-                <strong>membershipId:</strong> {changeMemberId(memberData.membershipId)}
-              </p>
-              <p>
-                <strong>Owner Name:</strong> {memberData.ownerNameMasked}
-              </p>
-              <p>
-                <strong>Co-Owner Name:</strong> {memberData.coOwnerNameMasked}
-              </p>
-              <p>
-                <strong>Phone Number:</strong> {memberData.phoneNumberMasked}
-              </p>
-              <p>
-                <strong>Email:</strong> {memberData.emailMasked}
-              </p>
+              <div c>
+                <h2 className="text-lg font-semibold mb-2 text-center underline">Member Details</h2>
+                <p>
+                  <strong>Flat Number:</strong> {memberData.flatNumber}
+                </p>
+                <p>
+                  <strong>membershipId:</strong> {changeMemberId(memberData.membershipId)}
+                </p>
+                <p>
+                  <strong>Owner Name:</strong> {memberData.ownerNameMasked}
+                </p>
+                <p>
+                  <strong>Co-Owner Name:</strong> {memberData.coOwnerNameMasked}
+                </p>
+                <p>
+                  <strong>Phone Number:</strong> {memberData.phoneNumberMasked}
+                </p>
+                <p>
+                  <strong>Email:</strong> {memberData.emailMasked}
+                </p>
+              </div>
 
-              {/* Update Button */}
               {/* Update Button (opens modal with instructions) */}
-              <button onClick={() => setShowUpdateModal(true)} className="mt-3 px-4 py-2 bg-orange-600 text-white rounded-lg">
+              <button onClick={() => setShowUpdateModal(true)} className="mt-3 px-4 py-2 text-sm bg-orange-600 text-white rounded-lg">
                 Update Details
               </button>
 
@@ -388,6 +397,7 @@ export default function CertificatePage() {
                   className="w-full px-3 py-2 border rounded-lg"
                   placeholder="Enter full phone number"
                   disabled={isPhoneVerified}
+                  maxLength={10}
                 />
               </div>
 
@@ -399,7 +409,9 @@ export default function CertificatePage() {
                 </button>
               ) : (
                 <>
-                  <p className="text-green-600 mt-2">Phone number matches the apartment owner's phone number.</p>
+                  <p className="text-white mt-2 bg-green-500 px-3 py-1 rounded-lg text-sm">
+                    Phone number matches the apartment owner's phone number.
+                  </p>
 
                   {/* First-time Send OTP button (shown only until otpSent) */}
                   {!otpSent && (
