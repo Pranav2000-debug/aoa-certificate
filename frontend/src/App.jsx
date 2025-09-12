@@ -348,7 +348,7 @@ export default function CertificatePage() {
                 <a href="https://forms.gle/yNuHstwnP9ThGW9u9" target="blank" className="text-blue-900 font-bold hover:underline hover:text-blue-600">
                   Click Here
                 </a>
-                " to submit a your member details.
+                " to submit your member details.
               </p>
             </div>
           )}
