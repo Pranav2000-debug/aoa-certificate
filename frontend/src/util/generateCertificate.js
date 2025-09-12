@@ -22,7 +22,7 @@ function changeMemberId(str) {
 
 function correctNameFormat(str) {
   // Added a guard clause to handle empty or invalid inputs safely
-  if (!str || !str.includes(" ")) return str;
+  if (!str || !str.includes(" ")) return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
   const [first, last] = str.split(" ");
   const capitalFirstName = first.charAt(0).toUpperCase() + first.slice(1).toLowerCase();
   const capitalLastName = last.charAt(0).toUpperCase() + last.slice(1).toLowerCase();
@@ -37,7 +37,7 @@ export async function generateCertificatePdf(memberData, options = {}) {
     templatePath = "/aoacertificate.pdf",
     positions = {
       membershipId: { x: 400, y: 326, size: 13, maxWidth: 200 }, // membership ID line
-      ownerName: { x: 235, y: 235, size: 18, maxWidth: 220 }, // left owner
+      ownerName: { x: 224, y: 235, size: 18, maxWidth: 220 }, // left owner
       coOwnerName: { x: 499, y: 235, size: 18, maxWidth: 220 }, // right co-owner
       flatNumber: { x: 240, y: 100, size: 14, maxWidth: 120 }, // "Flat No ...."
       tower: { x: 390, y: 100, size: 14, maxWidth: 80 }, // "Tower ...."
@@ -109,7 +109,11 @@ export async function generateCertificatePdf(memberData, options = {}) {
     const issuedDate = new Date().toLocaleDateString(); // 5) Draw fields
 
     drawWrappedText(page, revMemberShipId, positions.membershipId);
-    drawWrappedText(page, correctedOwnerName, positions.ownerName);
+    if (!correctedOwnerName.includes(" ")) {
+      drawWrappedText(page, correctedOwnerName, { x: 252, y: 235, size: 18, maxWidth: 220 });
+    } else {
+      drawWrappedText(page, correctedOwnerName, positions.ownerName);
+    }
 
     // **** FIX IS HERE ****
     // Check the actual co-owner name string before attempting to draw it.

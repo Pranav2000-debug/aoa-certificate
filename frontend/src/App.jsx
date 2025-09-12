@@ -355,7 +355,7 @@ export default function CertificatePage() {
 
           {memberData && (
             <div className="mt-6 p-4 border rounded-lg bg-gray-100">
-              <div c>
+              <div>
                 <h2 className="text-lg font-semibold mb-2 text-center underline">Member Details</h2>
                 <p>
                   <strong>Flat Number:</strong> {memberData.flatNumber}
@@ -412,7 +412,6 @@ export default function CertificatePage() {
                   <p className="text-white mt-2 bg-green-500 px-3 py-1 rounded-lg text-sm">
                     Phone number matches the apartment owner's phone number.
                   </p>
-
                   {/* First-time Send OTP button (shown only until otpSent) */}
                   {!otpSent && (
                     <button
